@@ -36,6 +36,10 @@ public class ColumnDefinition {
 	public static ColumnDefinition createChars(String name, int lenght) {
 		  return new ColumnDefinition(name, ColumnType.charsColumn(lenght), false);
 	}
+	
+	public static ColumnDefinition createFloat(String name) {
+		  return new ColumnDefinition(name, ColumnType.floatColumn(), false);
+	}
 
 	public String getColumnName() {
 		return columnName;

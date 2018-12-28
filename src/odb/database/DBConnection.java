@@ -11,55 +11,45 @@ public class DBConnection {
 	private static final String driverName = "oracle.jdbc.driver.OracleDriver";
 	private static final String url = "jdbc:oracle:thin:@ora3.elka.pw.edu.pl:1521:ora3inf";
 	private static final String username = "ppodgors";
-	private static final String password = ""; // wiadomo jakie
-	private static Connection connection = null;
+	private static final String password = "ppodgors"; // wiadomo jakie
+	private Connection connection = null;
 	private static DBConnection dbconnection;
 
-	private DBConnection() {		
+	private DBConnection() throws ClassNotFoundException, SQLException {		
 		init();
 	}
 
-	public static DBConnection getInstance() {
+	public static DBConnection getInstance() throws ClassNotFoundException, SQLException {
 		if (dbconnection == null) {
 			dbconnection = new DBConnection();
 		}
 		return dbconnection;
 	}
 
-	private void init() {
-
-		try {
-			Class c = Class.forName(driverName);
-			open();
-//    	System.out.println("AutoCommit: "+connection.getAutoCommit());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	private void init() throws ClassNotFoundException, SQLException {
+	    Class c = Class.forName(driverName);		
 	}
 
-	public static void open() throws SQLException {
+	public void open() throws SQLException {
 		if (connection == null) {
 			connection = DriverManager.getConnection(url, username, password);
 		}
 	}
 
-	public static void close() {
+	public void close() throws SQLException {
+		System.out.println("Zamykanie po³¹czenia!");
 		if (!isConnected()) {
 			return;
 		}
-		try {
-			connection.close();
-			connection = null;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+     	connection.close();	
+     	connection = null;
 	}
 
 	public Statement getStatement() throws SQLException {
 		return connection.createStatement();
 	}
 
-	public static boolean isConnected() {
+	public boolean isConnected() {
 		return connection != null;
 	}
 
@@ -67,4 +57,5 @@ public class DBConnection {
 		return new SimpleQuery(tableName, where);
 	}
 
+	
 }

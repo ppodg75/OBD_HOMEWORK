@@ -1,5 +1,6 @@
 package odb.database;
 
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public class DataCreator {
 			this.checkIdExists = checkIdExists;
 		}
 
-		public boolean values(Object... objects) {
+		public void values(Object... objects) throws ClassNotFoundException, SQLException {
 	
 			int colIndex = 0;
 
@@ -44,8 +45,8 @@ public class DataCreator {
 			}
 
 			if (checkIdExists && idExists(def.getTableName(), colNameId, valId)) {
-				System.out.printf("DB> Table: %s - row with id: %s exists! The insert has been skipped!\n", def.getTableName(), valId);
-				return true;
+//				System.out.printf("DB> Table: %s - row with id: %s exists! The insert has been skipped!\n", def.getTableName(), valId);
+				return;
 			}
 
 			StringBuilder insertDML = new StringBuilder();
@@ -56,27 +57,18 @@ public class DataCreator {
 			insertDML.append(colVals);
 			insertDML.append(")");
 
-			System.out.println(insertDML);
-			
-			try {
-				Statement stat = DBConnection.getInstance().getStatement();
-				stat.execute(insertDML.toString());
-				return true;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
+//			System.out.println(insertDML);
+			DBConnection db = DBConnection.getInstance();
+			Statement stat = db.getStatement();			
+		    stat.executeUpdate(insertDML.toString());
+			return;
+		
 		}
 
-		private boolean idExists(String tableName, String colNameId, String val) {
-			try {
-				String where = colNameId + " = " + val;
-				SimpleQuery sq = new SimpleQuery(tableName, where);
-				return sq.anyRowExists();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return false;
+		private boolean idExists(String tableName, String colNameId, String val) throws ClassNotFoundException, SQLException {
+			String where = colNameId + " = " + val;
+			SimpleQuery sq = new SimpleQuery(tableName, where);
+			return sq.anyRowExists();
 		}
 
 	}

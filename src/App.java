@@ -13,32 +13,44 @@ import odb.ui.UI;
 public class App {
 
 	public static void main(String... args) {
-		App app = new App();
-		app.run();
-		System.out.println("Application exit!");
+		try {
+			App app = new App();
+			app.run();
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		System.out.println("Wyjœcie z aplikacji!");
 	}
 
 	public App() {
-		createStructuresAndData();
 	}
 
-	public void createStructuresAndData() {
+	public void createStructuresAndData() throws Exception {
+		System.out.println("Zaczekaj. Tworzenie struktur i wprowadzanie przyk³adowych danych.");
+		TablesDataProject tdp = TablesDataProject.getInstance();
+		tdp.createStructuresAndInsertData(true, true);
+	}
+
+	private void run() throws Exception {
+		DBConnection db = null;
 		try {
-			if (DBConnection.getInstance() != null) {
-				if (DBConnection.getInstance().isConnected()) {
-					System.out.println("Database connecction - success");
-//					TablesDataProject.getInstance().createStructuresAndInsertData(true, false); // params: bool - drop before create tables, bool - insert data
-					TablesDataProject.getInstance().createStructuresAndInsertData(false, false);
+			db = DBConnection.getInstance();
+			if (db != null) {
+				db.open();
+				if (db.isConnected()) {
+					System.out.println("Uda³o pod³¹czyæ siê do bazy!");
+					createStructuresAndData();
+					doOperations();
+				} else {
+					throw new Exception("Nie uda³o siê pod³¹czyæ do bazy!");
 				}
 			}
-		} catch (Exception e) {
-			System.err.println( e.getMessage() );
 		} finally {
-			DBConnection.close();
+			db.close();
 		}
 	}
-
-	private void run() {
+	
+	private void doOperations() throws Exception {
 		UI.showMainMenu();
 		String operation = null;
 		while (true) {
@@ -47,54 +59,52 @@ public class App {
 				UI.close();
 				return;
 			}
-			try {
-				doOperation(operation);
-			} catch (SQLException e) {
-				System.err.println( e.getMessage() );
-			}
+			doOperation(operation);
 		}
 	}
 
-	private void doOperation(String op) throws SQLException {
+	private void doOperation(String op) throws Exception {
+		TablesDataProject tdp = TablesDataProject.getInstance();
 		if (UI.OPERATION_LIST_STUDENTS.equals(op)) {
-			TableDataList.showList(TablesDataProject.getStudents(), "Lista studentów: ");
+			TableDataList.showList(tdp.getStudents(), "Lista studentów: ");
 		} else if (UI.OPERATION_LIST_TEACHERS.equals(op)) {
-			TableDataList.showList(TablesDataProject.getTeachers(), "Lista nauczycieli: ");
+			TableDataList.showList(tdp.getTeachers(), "Lista nauczycieli: ");
 		} else if (UI.OPERATION_LIST_DEGREES.equals(op)) {
-			TableDataList.showList(TablesDataProject.getDegrees(), "Lista ocen: ");
+			TableDataList.showList(tdp.getDegrees(), "Lista ocen: ");
 		} else if (UI.OPERATION_LIST_SUBJECTS.equals(op)) {
-			TableDataList.showList(TablesDataProject.getSubjects(), "Lista przedmiotów: ");
+			TableDataList.showList(tdp.getSubjects(), "Lista przedmiotów: ");
 		} else if (UI.OPERATION_LIST_ISSUED_GRADES.equals(op)) {
 			TableDataList.showListIssuedGrades("Lista wystawionych ocen:");
 		} else if (UI.OPERATION_ISSUING_GRADES.equals(op)) {
 			issueGrades();
 		} else if (UI.OPERATION_SHOW_MENU.equals(op)) {
 			UI.showMainMenu();
-		}		
+		}
 		;
 	}
 
 	private void issueGrades() {
 		System.out.println("Podaj odpowiednie identyfikatory do ocenienia studenta: ");
 		try {
-			Long idu = enterId("studenta");
-			Long idn = enterId("nauczyciela");
-			Long ido = enterId("oceny");
-			Long idp = enterId("przedmiotu");
+			int idu = enterId("studenta");
+			int idn = enterId("nauczyciela");
+			int ido = enterId("oceny");
+			int idp = enterId("przedmiotu");
 			String degree = enterDegree();
 			if ("S".equalsIgnoreCase(degree) || "C".equalsIgnoreCase(degree)) {
 				addDegreeToDatabase(idu, idn, ido, idp, degree);
+				System.out.println("Ocena zosta³a wprowadzona do systemu!");
 			} else {
 				System.out.println("Podano z³y typ oceny, ocenianie zakoñczone. Spróbuj od nowa!");
 			}
 		} catch (Exception e) {
-			System.err.println( e.getMessage() );
+			System.err.println(e.getMessage());
 		}
 	}
 
-	private Long enterId(String what) {
+	private int enterId(String what) {
 		System.out.print(String.format("Podaj ID %s: ", what));
-		return new Long(UI.readId());
+		return UI.readId();
 	}
 
 	private String enterDegree() {
@@ -102,27 +112,27 @@ public class App {
 		return UI.readChar();
 	}
 
-	private void addDegreeToDatabase(Long idu, Long idn, Long ido, Long idp, String degree)
-			throws SQLException, DBForeignConstraintViolation {
-		DBConnection.getInstance().open();
-		try {
-			table_foreign_key_constraint_check_or_throw_exception(idu, TablesDataProject.getStudents());
-			table_foreign_key_constraint_check_or_throw_exception(idn, TablesDataProject.getTeachers());
-			table_foreign_key_constraint_check_or_throw_exception(ido, TablesDataProject.getDegrees());
-			table_foreign_key_constraint_check_or_throw_exception(idp, TablesDataProject.getSubjects());
-			InsertEngine ie = new DataCreator.InsertEngine(TablesDataProject.getIssuingGrades(), false);
-			ie.values(idp, ido, idn, idu, degree);
-		} finally {
-			DBConnection.getInstance().close();
-		}
+	private void addDegreeToDatabase(int idu, int idn, int ido, int idp, String degree) throws Exception {
+		TablesDataProject tdp = TablesDataProject.getInstance();
+		
+		table_foreign_key_constraint_check_or_throw_exception(idu, tdp.getStudents());
+		table_foreign_key_constraint_check_or_throw_exception(idn, tdp.getTeachers());
+		table_foreign_key_constraint_check_or_throw_exception(ido, tdp.getDegrees());
+		table_foreign_key_constraint_check_or_throw_exception(idp, tdp.getSubjects());
+
+		InsertEngine ie = new DataCreator.InsertEngine(tdp.getIssuingGrades(), false);
+		
+		ie.values(idp, ido, idn, idu, degree);
+		
 	}
 
-	private void table_foreign_key_constraint_check_or_throw_exception(Long id, TableDefinition table)
-			throws SQLException, DBForeignConstraintViolation {
-        SimpleQuery sq = new SimpleQuery(table.getTableName(),
-				String.format(" %s = %d", table.getIdColumnName(), id));
-		if (!sq.anyRowExists()) {
-			throw new DBForeignConstraintViolation(table.getTableName(), id);
+	private void table_foreign_key_constraint_check_or_throw_exception(int id, TableDefinition table)
+			throws Exception {
+		//		if (!table.hasId(id))
+		SimpleQuery sq = new SimpleQuery(table.getTableName(), String.format(" %s = %d", table.getIdColumnName(), id));
+		if (!sq.anyRowExists())
+		{
+			throw new DBForeignConstraintViolation();
 		}
 	}
 

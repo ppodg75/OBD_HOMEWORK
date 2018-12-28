@@ -18,7 +18,7 @@ public class TablesCreator {
 		this.tables = tables;
 	}
 	
-	public void dropAllIfExists() throws SQLException {
+	public void dropAllIfExists() throws SQLException, ClassNotFoundException {
 		for (TableDefinition td : tables) {
 			if (tableExists(td.getTableName())) {
 				dropTable(td);				
@@ -26,7 +26,7 @@ public class TablesCreator {
 		}
 	}
 
-	public void createAllIfNotExists(Consumer<TableDefinition> consumer) throws SQLException {
+	public void createAllIfNotExists(Consumer<TableDefinition> consumer) throws SQLException, ClassNotFoundException {
 		for (TableDefinition td : tables) {
 			if (!tableExists(td.getTableName())) {
 				createTable(td);				
@@ -35,13 +35,13 @@ public class TablesCreator {
 		}
 	}
 
-	private boolean tableExists(String tableName) throws SQLException {
+	private boolean tableExists(String tableName) throws SQLException, ClassNotFoundException {
 		return DBConnection.simpleQuery("user_tables", "table_name=upper('" + tableName + "')").anyRowExists();
 	}
 
-	private void createTable(TableDefinition table) throws SQLException {
-		
-		Statement statement = DBConnection.getInstance().getStatement();
+	private void createTable(TableDefinition table) throws SQLException, ClassNotFoundException {
+		DBConnection db = DBConnection.getInstance();		
+		Statement statement = db.getStatement();
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("CREATE TABLE ");
@@ -58,19 +58,19 @@ public class TablesCreator {
 			isFirst = false;
 		}
 		sb.append(")");
-		System.out.println(sb.toString());
+//		System.out.println(sb.toString());
 		statement.execute(sb.toString());
 
 	}
 	
-	private void dropTable(TableDefinition table) throws SQLException {		
-
-		Statement statement = DBConnection.getInstance().getStatement();
+	private void dropTable(TableDefinition table) throws SQLException, ClassNotFoundException {		
+		DBConnection db = DBConnection.getInstance();		
+		Statement statement = db.getStatement();
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("DROP TABLE ");
 		sb.append(table.getTableName());				
-		System.out.println(sb.toString());
+//		System.out.println(sb.toString());
 		statement.execute(sb.toString());
 		
 	}

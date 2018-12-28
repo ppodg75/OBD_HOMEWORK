@@ -44,7 +44,8 @@ public class ColumnType {
 		String typeName = type.getDesc();
 		switch (type) {
 		case CHAR:
-		case TEXT: return typeName+"("+length+")";		  
+		case TEXT: return typeName+"("+length+")";		 
+		case FLOAT:
 		case INT: return typeName; 
 		case NUMERIC :return typeName+"("+length+","+precision+")";
 		}
@@ -53,6 +54,7 @@ public class ColumnType {
 
 	
 	public static ColumnType intColumn() { return new ColumnType(Type.INT); }
+	public static ColumnType floatColumn() { return new ColumnType(Type.FLOAT); }
 	public static ColumnType textColumn(int maxLength) { return new ColumnType(Type.TEXT, maxLength); }
 	public static ColumnType charsColumn(int fixedLength) { return new ColumnType(Type.CHAR, fixedLength); }
 	public static ColumnType numericColumn(int length, int precision) { return new ColumnType(Type.NUMERIC, length, precision); }

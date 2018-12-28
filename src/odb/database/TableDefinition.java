@@ -7,6 +7,8 @@ public class TableDefinition {
 	
 	private String tableName;
 	private List<ColumnDefinition> columns = new ArrayList<>();
+	private int minId = 0;
+	private int maxId = 0;
 	
 	public TableDefinition(String tableName) {
 		this.tableName = tableName;			
@@ -33,7 +35,7 @@ public class TableDefinition {
 	}
 	
 	public TableDefinition addFloatColumn(String columnName, int length, int precision) {
-		columns.add(ColumnDefinition.createNumeric(columnName, length, precision) );
+		columns.add(ColumnDefinition.createFloat(columnName) );
 		return this;
 	}
 	
@@ -47,6 +49,26 @@ public class TableDefinition {
 	
 	public String getIdColumnName() {
 		return columns.stream().filter(ColumnDefinition::isId).map(ColumnDefinition::getColumnName).findFirst().orElse("");
+	}
+
+	public int getMinId() {
+		return minId;
+	}
+
+	public void setMinId(int minId) {
+		this.minId = minId;
+	}
+
+	public int getMaxId() {
+		return maxId;
+	}
+
+	public void setMaxId(int maxId) {
+		this.maxId = maxId;
+	}
+	
+	public boolean hasId(int id) {
+		return (id>=minId && id<=maxId);
 	}
 
 }

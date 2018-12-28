@@ -6,6 +6,7 @@ public enum Type {
 	INT("integer", x -> "'"+String.valueOf(x)+"'" ),
 	CHAR("char", x -> "'"+x+"'" ),
 	NUMERIC("numeric", x -> "'"+dotToComma(String.valueOf(x))+"'" ),
+	FLOAT("float", x -> "'"+dotToComma(String.valueOf(x))+"'" ),
 	TEXT("varchar2", x -> "'"+x+"'" );
 	
 	private String desc; 

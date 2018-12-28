@@ -26,8 +26,8 @@ public class UI {
 	}
 
 	public static void showMainMenu() {
-		System.out.println();
-		System.out.println();
+//		System.out.println();
+//		System.out.println();
 		System.out.println();
 		System.out.println();
 		System.out.println();
