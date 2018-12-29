@@ -26,11 +26,6 @@ public class UI {
 	}
 
 	public static void showMainMenu() {
-//		System.out.println();
-//		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
 		System.out.println();
 		System.out.println("Lista poleceñ:");
 		System.out.println("------------------");
@@ -46,32 +41,38 @@ public class UI {
 
 	public static String selectOperation() {
 		String op;
-
+		System.out.println();
 		System.out.println("Wprowad¿ polecenie: ");
-		do {
+		do {			
 			String operation = sc.nextLine();
+			sc.reset();
 			op = operation.toUpperCase();
 			if (!AVAILABLE_OPERATIONS.contains(op)) {
-				System.out.println("Nieznane polecenie!");
+				System.out.println("Nieznane polecenie \""+op+"\"!");
+				System.out.println();
+				System.out.println("Wprowad¿ polecenie: ");
 			} else {
 				System.out.println("wykonujê polecenie: " + op);
 			}
 		} while (!AVAILABLE_OPERATIONS.contains(op));
-
 		return op;
-
+	}
+	
+	public static void clearScanner() {
+		if (sc.hasNextLine()) { sc.nextLine(); }
 	}
 
 	public static int readId() {
-		int id = 0;
-		id = sc.nextInt();
+		int id = 0;		
+		id = sc.nextInt();		
+		sc.reset();
 		return id;
 	}
 
 	public static String readChar() {
-		String c;
-		sc.nextLine();
+		String c;		
 		c = sc.nextLine();
+		sc.reset();
 		return c.substring(0, 1).toUpperCase();
 	}
 

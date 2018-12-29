@@ -6,6 +6,7 @@ public class ColumnDefinition {
 
 	private String columnName;
 	private ColumnType columnType;	
+	private boolean isNullable = false;
 	
 	public ColumnDefinition(String columnName, ColumnType columnType, boolean isId) {		
 		this.isId = isId;
@@ -55,6 +56,14 @@ public class ColumnDefinition {
 	
 	public Integer getLength() {
 		return columnType.getLength();
+	}
+
+	public boolean isNullable() {
+		return isNullable;
+	}
+
+	public void setNullable(boolean isNullable) {
+		this.isNullable = isNullable;
 	}
 		
 	

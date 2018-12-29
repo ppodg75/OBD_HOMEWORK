@@ -13,7 +13,6 @@ import odb.database.Type;
 public class TableDataList {
 
 	public static void showList(TableDefinition table, String prompt) throws SQLException, ClassNotFoundException {
-		System.out.println(prompt);
 		DBConnection db = DBConnection.getInstance();
 
 		Statement statement = db.getStatement();

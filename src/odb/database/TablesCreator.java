@@ -55,6 +55,9 @@ public class TablesCreator {
 			}
 			sb.append(col.getColumnName() + " ");
 			sb.append(col.getColumnTypeDefinition());
+			if (!col.isNullable()) {
+				sb.append(" NOT NULL");
+			}
 			isFirst = false;
 		}
 		sb.append(")");

@@ -18,12 +18,10 @@ public class SimpleQuery {
 	public boolean anyRowExists() throws SQLException, ClassNotFoundException {
 		DBConnection db = DBConnection.getInstance();
 		int count = 0;
-
 		Statement statement = db.getStatement();
 		String query = "select 1 from " + tableName + " where " + where;
 		ResultSet rs = statement.executeQuery(query);
 		return rs.next();
-
 	}
 
 }

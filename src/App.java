@@ -1,4 +1,6 @@
 import java.sql.SQLException;
+import java.sql.SQLRecoverableException;
+import java.util.InputMismatchException;
 
 import odb.database.DBConnection;
 import odb.database.DBForeignConstraintViolation;
@@ -13,43 +15,44 @@ import odb.ui.UI;
 public class App {
 
 	public static void main(String... args) {
-		try {
-			App app = new App();
-			app.run();
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-		}
-		System.out.println("Wyjœcie z aplikacji!");
+		App app = new App();
+		app.run();
+		System.out.println("Wyjœcie z aplikacji");
 	}
 
-	public App() {
-	}
-
-	public void createStructuresAndData() throws Exception {
-		System.out.println("Zaczekaj. Tworzenie struktur i wprowadzanie przyk³adowych danych.");
-		TablesDataProject tdp = TablesDataProject.getInstance();
-		tdp.createStructuresAndInsertData(true, true);
-	}
-
-	private void run() throws Exception {
+	private void run() {
 		DBConnection db = null;
 		try {
 			db = DBConnection.getInstance();
 			if (db != null) {
 				db.open();
-				if (db.isConnected()) {
-					System.out.println("Uda³o pod³¹czyæ siê do bazy!");
-					createStructuresAndData();
-					doOperations();
-				} else {
-					throw new Exception("Nie uda³o siê pod³¹czyæ do bazy!");
-				}
+				System.out.println("Próba po³¹czenia z baz¹ zakoñczona sukcesem!");
+				createStructuresAndData();
+				doOperations();
+			} else {
+				System.out.print("Próba po³¹czenia z baz¹ zakoñczona niepowodzeniem!");
+				return;
 			}
+		} catch (ClassNotFoundException e) {
+			System.out.println("Nie znaleziono odpowiedniego drivera do obs³ugi bazy!");
+		} catch (SQLRecoverableException e) {
+			System.out.println("Brak po³¹czenia z baz¹!");
+		} catch (SQLException e) {
+			System.out.println("Problem z nawi¹zaniem po³¹czenia z baz¹!");
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
-			db.close();
+			if (db != null)
+				db.close();
 		}
 	}
-	
+
+	public void createStructuresAndData() throws ClassNotFoundException, SQLException {
+		System.out.println("Zaczekaj. Tworzenie struktur i wprowadzanie przyk³adowych danych.");
+		TablesDataProject tdp = TablesDataProject.getInstance();
+		tdp.createStructuresAndInsertData(true, true);
+	}
+
 	private void doOperations() throws Exception {
 		UI.showMainMenu();
 		String operation = null;
@@ -59,7 +62,19 @@ public class App {
 				UI.close();
 				return;
 			}
-			doOperation(operation);
+			if (operation != null) {
+				try {
+					doOperation(operation);
+				} catch (DBForeignConstraintViolation e) {
+				} catch (InputMismatchException e) {
+					System.out.println("Podano nieprawid³ow¹ liczbê dla ID! Powtórz polecenie od pocz¹tku.");
+					UI.clearScanner();
+				} catch (StringIndexOutOfBoundsException e) {
+					System.out.println("Podano nieprawid³owy rodzaj oceny!");					
+				} catch (Exception e) {
+					throw e;
+				}
+			}
 		}
 	}
 
@@ -83,28 +98,35 @@ public class App {
 		;
 	}
 
-	private void issueGrades() {
+	private void issueGrades() throws Exception {
 		System.out.println("Podaj odpowiednie identyfikatory do ocenienia studenta: ");
-		try {
-			int idu = enterId("studenta");
-			int idn = enterId("nauczyciela");
-			int ido = enterId("oceny");
-			int idp = enterId("przedmiotu");
-			String degree = enterDegree();
-			if ("S".equalsIgnoreCase(degree) || "C".equalsIgnoreCase(degree)) {
+
+		int idu = enterId("ucznia");
+		int idn = enterId("nauczyciela");
+		int ido = enterId("oceny");
+		int idp = enterId("przedmiotu");
+		UI.clearScanner();
+		String degree = enterDegree();
+		if ("S".equalsIgnoreCase(degree) || "C".equalsIgnoreCase(degree)) {
+			try {
+				System.out.println();				
 				addDegreeToDatabase(idu, idn, ido, idp, degree);
 				System.out.println("Ocena zosta³a wprowadzona do systemu!");
-			} else {
-				System.out.println("Podano z³y typ oceny, ocenianie zakoñczone. Spróbuj od nowa!");
+			} catch (DBForeignConstraintViolation e) {
+//				System.out.println("Ocena nie zosta³a wprowadzona do systemu z powodu poni¿szego b³êdu:");
+				System.out.println(e.getMessage());
+				throw e;
 			}
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
+		} else {
+			System.out.println("Podano z³y typ oceny, ocenianie zakoñczone. Spróbuj od nowa!");
 		}
+
 	}
 
 	private int enterId(String what) {
 		System.out.print(String.format("Podaj ID %s: ", what));
-		return UI.readId();
+		int id = UI.readId();
+		return id;
 	}
 
 	private String enterDegree() {
@@ -114,25 +136,21 @@ public class App {
 
 	private void addDegreeToDatabase(int idu, int idn, int ido, int idp, String degree) throws Exception {
 		TablesDataProject tdp = TablesDataProject.getInstance();
-		
+
 		table_foreign_key_constraint_check_or_throw_exception(idu, tdp.getStudents());
 		table_foreign_key_constraint_check_or_throw_exception(idn, tdp.getTeachers());
 		table_foreign_key_constraint_check_or_throw_exception(ido, tdp.getDegrees());
 		table_foreign_key_constraint_check_or_throw_exception(idp, tdp.getSubjects());
-
 		InsertEngine ie = new DataCreator.InsertEngine(tdp.getIssuingGrades(), false);
-		
+
 		ie.values(idp, ido, idn, idu, degree);
-		
+
 	}
 
-	private void table_foreign_key_constraint_check_or_throw_exception(int id, TableDefinition table)
-			throws Exception {
-		//		if (!table.hasId(id))
+	private void table_foreign_key_constraint_check_or_throw_exception(int id, TableDefinition table) throws Exception {
 		SimpleQuery sq = new SimpleQuery(table.getTableName(), String.format(" %s = %d", table.getIdColumnName(), id));
-		if (!sq.anyRowExists())
-		{
-			throw new DBForeignConstraintViolation();
+		if (!sq.anyRowExists()) {
+			throw new DBForeignConstraintViolation(table.getTableName(), id);
 		}
 	}
 

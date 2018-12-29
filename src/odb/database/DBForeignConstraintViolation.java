@@ -2,8 +2,8 @@ package odb.database;
 
 public class DBForeignConstraintViolation extends Exception {
 	
-	public DBForeignConstraintViolation() {
-		super("ORA-02291: naruszono wiêzy spójnoœci (PPODGORS.SYS_C00703428) - nie znaleziono klucza nadrzêdnego.");
+	public DBForeignConstraintViolation(String tableName, int id) {
+		super(String.format("Naruszono wiêzy spójnoœci - nie znaleziono klucza nadrzêdnego o id=%d w tabeli \"%s\".",id, tableName));
 	}
 
 }

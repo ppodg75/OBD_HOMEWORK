@@ -15,47 +15,43 @@ public class DBConnection {
 	private Connection connection = null;
 	private static DBConnection dbconnection;
 
-	private DBConnection() throws ClassNotFoundException, SQLException {		
+	private DBConnection() throws ClassNotFoundException {
 		init();
 	}
 
-	public static DBConnection getInstance() throws ClassNotFoundException, SQLException {
+	public static DBConnection getInstance() throws ClassNotFoundException {
 		if (dbconnection == null) {
 			dbconnection = new DBConnection();
 		}
 		return dbconnection;
 	}
 
-	private void init() throws ClassNotFoundException, SQLException {
-	    Class c = Class.forName(driverName);		
+	private void init() throws ClassNotFoundException {
+		Class c = Class.forName(driverName);
 	}
 
-	public void open() throws SQLException {
-		if (connection == null) {
-			connection = DriverManager.getConnection(url, username, password);
-		}
+	public void open() throws SQLException {		
+		connection = DriverManager.getConnection(url, username, password);		
 	}
 
-	public void close() throws SQLException {
-		System.out.println("Zamykanie po³¹czenia!");
-		if (!isConnected()) {
-			return;
+	public void close() {
+		try {
+			if (connection != null) {
+				connection.close();
+				System.out.println("Zamykanie po³¹czenia z baz¹ ... zamkniête!");
+			}
+			connection = null;
+		} catch (SQLException e) {
 		}
-     	connection.close();	
-     	connection = null;
+		
 	}
 
 	public Statement getStatement() throws SQLException {
 		return connection.createStatement();
 	}
 
-	public boolean isConnected() {
-		return connection != null;
-	}
-
 	public static SimpleQuery simpleQuery(String tableName, String where) {
 		return new SimpleQuery(tableName, where);
 	}
 
-	
 }
