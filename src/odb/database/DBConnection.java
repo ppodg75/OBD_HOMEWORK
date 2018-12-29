@@ -11,7 +11,7 @@ public class DBConnection {
 	private static final String driverName = "oracle.jdbc.driver.OracleDriver";
 	private static final String url = "jdbc:oracle:thin:@ora3.elka.pw.edu.pl:1521:ora3inf";
 	private static final String username = "ppodgors";
-	private static final String password = "ppodgors"; // wiadomo jakie
+	private static final String password = ""; // wiadomo jakie
 	private Connection connection = null;
 	private static DBConnection dbconnection;
 
